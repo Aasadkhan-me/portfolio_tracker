@@ -1,0 +1,33 @@
+flowchart TD
+    A([Start]) --> B["Define PORTFOLIO_DATA<br/>ticker: quantity"]
+    B --> C["Create PortfolioTracker(holdings)"]
+    C --> D["Call fetch_live_prices()"]
+
+    D --> E{"For each ticker<br/>in holdings"}
+    E --> F["Query yfinance.Ticker(symbol)"]
+    F --> G{"Price fetch<br/>successful?"}
+    G -- Yes --> H["Store price + company name<br/>in self.prices"]
+    G -- No --> I["Print warning<br/>skip ticker"]
+    H --> E
+    I --> E
+    E -- all tickers done --> J{"Any prices<br/>fetched?"}
+
+    J -- No --> K(["Print 'Execution halted'<br/>End"])
+    J -- Yes --> L["Call generate_excel_report()"]
+
+    L --> M["Create workbook + sheet<br/>'Portfolio Summary'"]
+    M --> N["Write styled header row<br/>(Ticker, Company, Qty, Price, Value, Allocation %)"]
+    N --> O{"For each holding<br/>with valid price"}
+    O --> P["Write Ticker, Company,<br/>Quantity, Price to row"]
+    P --> Q["Insert Market Value formula<br/>=Qty * Price"]
+    Q --> R["Apply currency<br/>number formatting"]
+    R --> O
+    O -- all rows written --> S["Compute total_row position"]
+
+    S --> T{"Backfill allocation %<br/>for each data row"}
+    T --> U["Insert formula<br/>=MarketValue / Total"]
+    U --> T
+    T -- done --> V["Write TOTAL row<br/>=SUM of Market Value column"]
+    V --> W["Set column widths"]
+    W --> X["Save workbook to<br/>output/portfolio_&lt;date&gt;.xlsx"]
+    X --> Y(["Print save confirmation<br/>End"])
